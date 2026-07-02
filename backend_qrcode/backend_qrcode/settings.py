@@ -31,9 +31,16 @@ except ImportError:  # python-dotenv not installed; rely on os.environ only
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get(
-    "SECRET_KEY", "django-insecure-y4m-@5+pdk1cp)1v&!4^z#74ln#00+m6$@5c12_90@m5js3ywl"
-)
+# No fallback: the key must be provided via the environment / .env so a real
+# secret is never committed. It also seeds the barcode HMAC signing key.
+SECRET_KEY = os.environ.get("SECRET_KEY")
+if not SECRET_KEY:
+    from django.core.exceptions import ImproperlyConfigured
+
+    raise ImproperlyConfigured(
+        "SECRET_KEY is not set. Define it in the environment or in "
+        "backend_qrcode/.env (see backend_qrcode/.env.example)."
+    )
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG", "True") == "True"
